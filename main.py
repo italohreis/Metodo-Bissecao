@@ -43,43 +43,45 @@ def plotar_bissecao(f, a, b, tol, raiz_exata=None, max_iter=100):
     df = pd.DataFrame(dados, columns=colunas)
     
     # pasta para salvar as imagens
-    os.makedirs("images", exist_ok=True)
-    
-    # ----------- GERAR GRÁFICO  -----------
-    #definir um intervalo para o gráfico que captura bem a função
+    diretorio_projeto = os.path.dirname(os.path.abspath(__file__))  # Diretório do projeto onde o script está
+    caminho_imagens = os.path.join(diretorio_projeto, "imagens-resultado")
+    os.makedirs(caminho_imagens, exist_ok=True)
+
+    # ----------- GERAR GRÁFICO ----------- 
+    # definir um intervalo para o gráfico que captura bem a função
     x_min = min(a, b) - 0.5
     x_max = max(a, b) + 0.5
     x_vals = np.linspace(x_min, x_max, 1000)
     y_vals = [f(x) for x in x_vals]
     
-    #criar figura com subplots (1 grande para o gráfico principal)
+    # criar figura com subplots (1 grande para o gráfico principal)
     fig, ax = plt.subplots(figsize=(12, 8))
     
-    #plotar a função
+    # plotar a função
     ax.plot(x_vals, y_vals, 'b-', label='f(x)', linewidth=2)
     
-    #adicionar linhas de referência
+    # adicionar linhas de referência
     ax.axhline(0, color='k', linestyle='-', alpha=0.3)
     ax.axvline(0, color='k', linestyle='-', alpha=0.3)
     
-    #destacar a raiz aproximada
+    # destacar a raiz aproximada
     ax.plot(raiz_aprox, f(raiz_aprox), 'ro', markersize=8, label=f'Raiz aproximada: {raiz_aprox:.5f}')
     
     if raiz_exata is not None:
         ax.plot(raiz_exata, f(raiz_exata), 'go', markersize=8, label=f'Raiz exata: {raiz_exata:.5f}')
     
-    #visualizar os intervalos de cada iteração
+    # visualizar os intervalos de cada iteração
     colors = plt.cm.viridis(np.linspace(0, 1, len(dados)))
     
     for i, (n, a_n, b_n, x_n, fx_n, erro) in enumerate(dados):
-        #marcar o ponto médio de cada iteração
+        # marcar o ponto médio de cada iteração
         ax.plot(x_n, fx_n, 'o', color=colors[i], markersize=6, alpha=0.7)
         
-        #visualizar o intervalo [a_n, b_n]
+        # visualizar o intervalo [a_n, b_n]
         ax.plot([a_n, b_n], [f(a_n), f(b_n)], color=colors[i], alpha=0.5, 
                 label=f'Iteração {n}' if i < 5 or i == len(dados)-1 else "")
         
-        #adicionarv linha vertical para cada iteração
+        # adicionar linha vertical para cada iteração
         ax.vlines(x=x_n, ymin=min(0, fx_n), ymax=max(0, fx_n), 
                   linestyle='--', color=colors[i], alpha=0.5)
     
@@ -89,21 +91,21 @@ def plotar_bissecao(f, a, b, tol, raiz_exata=None, max_iter=100):
     ax.set_ylabel("f(x)", fontsize=12)
     ax.grid(True, linestyle='--', alpha=0.7)
     
-    #legenda
+    # legenda
     ax.legend(loc='upper right', fontsize=10)
     
     plt.tight_layout()
     
-    #salvamento do grafico
-    plt.savefig("images/bissecao_completo.png", dpi=300, bbox_inches="tight")
+    # salvamento do gráfico
+    plt.savefig(os.path.join(caminho_imagens, "bissecao_completo.png"), dpi=300, bbox_inches="tight")
     
-    # ----------- GERAR TABELA COMO IMAGEM -----------
+    # ----------- GERAR TABELA COMO IMAGEM ----------- 
     fig_tabela, ax_tabela = plt.subplots(figsize=(10, 2 + len(df) * 0.3))
     ax_tabela.axis('off')
     
-    #formatar os dados para melhor visualização
+    # formatar os dados para melhor visualização
     df_formatada = df.copy()
-    #formatar números com 5 casas decimais para raiz e função, 4 para intervalos
+    # formatar números com 5 casas decimais para raiz e função, 4 para intervalos
     df_formatada['a_n'] = df_formatada['a_n'].apply(lambda x: f"{x:.4f}")
     df_formatada['b_n'] = df_formatada['b_n'].apply(lambda x: f"{x:.4f}")
     df_formatada['x_n'] = df_formatada['x_n'].apply(lambda x: f"{x:.5f}")
@@ -128,21 +130,21 @@ def plotar_bissecao(f, a, b, tol, raiz_exata=None, max_iter=100):
     
     plt.title("Dados das Iterações do Método da Bisseção", fontsize=14)
     plt.tight_layout()
-    plt.savefig("images/tabela_bissecao.png", dpi=300, bbox_inches="tight")
+    plt.savefig(os.path.join(caminho_imagens, "tabela_bissecao.png"), dpi=300, bbox_inches="tight")
     
-    # ----------- GERAR IMAGEM FINAL COMBINADA -----------
+    # ----------- GERAR IMAGEM FINAL COMBINADA ----------- 
     img_width, img_height = 2000, 1600
     output_img = Image.new("RGB", (img_width, img_height), color=(255, 255, 255))
     
-    #carregar as imagens geradas
-    grafico = Image.open("images/bissecao_completo.png").resize((img_width, img_height // 2), Image.LANCZOS)
-    tabela = Image.open("images/tabela_bissecao.png").resize((img_width, img_height // 2), Image.LANCZOS)
+    # carregar as imagens geradas
+    grafico = Image.open(os.path.join(caminho_imagens, "bissecao_completo.png")).resize((img_width, img_height // 2), Image.LANCZOS)
+    tabela = Image.open(os.path.join(caminho_imagens, "tabela_bissecao.png")).resize((img_width, img_height // 2), Image.LANCZOS)
     
-    #combinar as imagens
+    # combinar as imagens
     output_img.paste(grafico, (0, 0))
     output_img.paste(tabela, (0, img_height // 2))
     
-    # titulo e informações
+    # título e informações
     draw = ImageDraw.Draw(output_img)
     try:
         font = ImageFont.truetype("Arial", 36)
@@ -152,12 +154,12 @@ def plotar_bissecao(f, a, b, tol, raiz_exata=None, max_iter=100):
     draw.text((img_width // 2, img_height - 50), msg, 
               fill=(0, 0, 0), font=font, anchor="mm")
     
-    #salvando imagem final
-    output_img.save("images/bissecao_resultado_final.png")
+    # salvando imagem final
+    output_img.save(os.path.join(caminho_imagens, "bissecao_resultado_final.png"))
     
     return raiz_aprox, df, msg
 
-#Exemplo de uso
+# Exemplo de uso
 if __name__ == "__main__":
     # Definir a função f(x)
     f = lambda x: x**2 - 3
@@ -180,6 +182,6 @@ else:
     print(mensagem)
     print(f"Raiz exata: {raiz_exata:.5f}")
     print(f"Raiz aproximada: {raiz_aproximada:.5f}")
-    print(f"Tabela de iterações salva em 'images/tabela_bissecao.png'")
-    print(f"Gráfico completo salvo em 'images/bissecao_completo.png'")
-    print(f"Resultado final salvo em 'images/bissecao_resultado_final.png'")
+    print(f"Tabela de iterações salva em 'imagens-resultado/tabela_bissecao.png'")
+    print(f"Gráfico completo salvo em 'imagens-resultado/bissecao_completo.png'")
+    print(f"Resultado final salvo em 'imagens-resultado/bissecao_resultado_final.png'")
